@@ -1,34 +1,18 @@
 import React, { Component } from "react";
-import logo from "./logo.svg";
-import "./App.css";
+import { Route } from "react-router-dom";
+import Menu from "./components/Menu";
+import RedPage from "./pages/RedPage";
+import BluePage from "./pages/BluePage";
 
-class App extends Component {
-  state = {
-    SplitMe: null,
-  };
-
-  onClick = async () => {
-    const loadedModule = await import("./components/SplitMe");
-    this.setState({ SplitMe: loadedModule.default });
-  };
-
-  render() {
-    const { SplitMe } = this.state;
-
-    return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-
-          <button onClick={this.onClick}>Greeting!</button>
-          {SplitMe && <SplitMe />}
-        </header>
-      </div>
-    );
-  }
-}
+const App = () => {
+  return (
+    <div>
+      <Menu />
+      <hr />
+      <Route path="/red" component={RedPage} />
+      <Route path="/blue" component={BluePage} />
+    </div>
+  );
+};
 
 export default App;
