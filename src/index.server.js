@@ -8,8 +8,11 @@ import fs from "fs";
 import { createStore, applyMiddleware } from "redux";
 import { Provider } from "react-redux";
 import thunk from "redux-thunk";
-import rootReducer from "./modules";
+
 import PreloadContext from "./lib/PreloadContext";
+import createSagaMiddleware from "redux-saga";
+import rootReducer, { rootSaga } from "./modules";
+import { END } from "redux-saga";
 
 const manifest = JSON.parse(
   fs.readFileSync(path.resolve("./build/asset-manifest.json"), "utf8"),
@@ -51,7 +54,14 @@ const serverRender = async (req, res, next) => {
   // 404가 뜨는 상황을 방지하고 서버사이드 렌더링을 해줌
 
   const context = {};
-  const store = createStore(rootReducer, applyMiddleware(thunk));
+  const sagaMiddleware = createSagaMiddleware();
+
+  const store = createStore(
+    rootReducer,
+    applyMiddleware(thunk, sagaMiddleware),
+  );
+
+  const sagaPromise = sagaMiddleware.run(rootSaga).toPromise();
 
   const preloadContext = {
     done: false,
@@ -71,7 +81,10 @@ const serverRender = async (req, res, next) => {
   // 한번 렌더링을 한다.
   ReactDOMServer.renderToStaticMarkup(jsx);
 
+  store.dispatch(END); // 리덕스 사가의 END 액션을 발생시키면 액션을 모니터링하는 사가들이 모두 종료됩니다.
+
   try {
+    await sagaPromise;
     await Promise.all(preloadContext.promises);
   } catch (e) {
     return res.status(500);
