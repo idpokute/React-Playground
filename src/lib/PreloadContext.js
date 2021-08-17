@@ -20,4 +20,10 @@ export const Preloader = ({ resolve }) => {
   return null;
 };
 
-console.log("done preloadcontext.js");
+export const usePreloader = (resolve) => {
+  const preloadContext = useContext(PreloadContext);
+  if (!preloadContext) return null;
+  if (preloadContext.done) return null;
+
+  preloadContext.promises.push(Promise.resolve(resolve()));
+};
